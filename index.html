@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Mera</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  font-family: 'Playfair Display', serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  background: white;
+}
+
+.contenido {
+  width: 80%;
+  max-width: 760px;
+  padding: 80px 60px;
+  text-align: center;
+  position: relative;
+}
+
+/* Texto */
+.frase {
+  font-size: 1.65rem;
+  line-height: 1.55;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+.frase.activa {
+  opacity: 1;
+}
+
+/* Escalerita */
+.escalera span {
+  display: block;
+  text-align: left;
+  opacity: 0;
+  animation: aparecerLinea 0.8s ease forwards;
+}
+
+.escalera span:nth-child(1) { margin-left: 0; animation-delay: 0s; }
+.escalera span:nth-child(2) { margin-left: 28px; animation-delay: .2s; }
+.escalera span:nth-child(3) { margin-left: 56px; animation-delay: .4s; }
+.escalera span:nth-child(4) { margin-left: 84px; animation-delay: .6s; }
+.escalera span:nth-child(5) { margin-left: 112px; animation-delay: .8s; }
+
+@keyframes aparecerLinea {
+  to { opacity: 1; }
+}
+
+/* Corazón inicial */
+#inicio {
+  font-size: 5rem;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+#inicio span {
+  display: block;
+  font-size: 1rem;
+  margin-top: 10px;
+}
+
+/* Botón volver */
+#volver {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+#volver:hover {
+  opacity: 1;
+}
+
+/* Corte */
+#corte {
+  font-size: 1.6rem;
+  line-height: 1.6;
+}
+
+/* Pregunta */
+#pregunta .nombre {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+#pregunta h1 {
+  margin-bottom: 20px;
+}
+
+.opciones button {
+  margin: 10px;
+  background: none;
+  border: 1px solid black;
+  padding: 8px 18px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.opciones button:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.oculto {
+  display: none;
+}
+
+/* Corazón de click */
+.click-corazon {
+  position: absolute;
+  font-size: 20px;
+  opacity: 0.8;
+  animation: flotarClick 2s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes flotarClick {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(-80px); opacity: 0; }
+}
+
+/* Lluvia */
+.palabra {
+  position: absolute;
+  font-size: 18px;
+  opacity: 0.85;
+  animation: flotar 3s ease forwards;
+}
+
+@keyframes flotar {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(-200px); opacity: 0; }
+}
+
+/* Mensaje inferior */
+.mensaje {
+  position: fixed;
+  bottom: 25px;
+  width: 100%;
+  text-align: center;
+  font-size: 1.6rem;
+  animation: aparecer 3s ease forwards;
+}
+
+@keyframes aparecer {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  100% { opacity: 0; }
+}
+</style>
+</head>
+
+<body>
+
+<div id="volver" onclick="retroceder(event)">♡</div>
+
+<div class="contenido">
+  <div id="pantalla">
+    <div id="inicio">
+      ♡
+      <span>click</span>
+    </div>
+  </div>
+
+  <div id="corte" class="oculto">
+    <p><strong>Antes de seguir…</strong><br>
+    Abre la cajita.<br>
+    Cuando estés lista,<br>
+    vuelve aquí para la respuesta final.</p>
+  </div>
+
+  <div id="pregunta" class="oculto">
+    <div class="nombre">Mera…</div>
+    <h1>¿Puedo ser tu novia?</h1>
+    <div class="opciones">
+      <button onclick="respuesta(event,'si')">sí &lt;3</button>
+      <button onclick="respuesta(event,'hablemos')">hablemos</button>
+      <button onclick="respuesta(event,'sisisi')">sí, sí, sí</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const rosaFinal = "#f4b6c2"; // 🩷 solo la pregunta
+
+const pantallas = [
+  `<p class="frase activa">
+  Eres el regalo más bonito que la vida me ha dado.<br>
+  A veces todavía me cuesta creer que existas.
+  </p>`,
+
+  `<p class="frase activa">
+  Contigo aprendí que el amor<br>
+  puede ser refugio<br>
+  y una razón para ser mejor<br>
+  cada día.
+  </p>`,
+
+  `<p class="frase activa escalera">
+    <span>No quiero soltarte.</span>
+    <span>Quiero elegirte.</span>
+    <span>Ser mejor.</span>
+    <span>Caminar contigo,</span>
+    <span>sin importar el camino que debamos cruzar.</span>
+  </p>`,
+
+  `<p class="frase activa">
+  Puedo poner mi corazón en tus manos<br>
+  con la certeza<br>
+  de que el tuyo llegará a las mías.<br>
+  Y prometo cuidarlo<br>
+  como se cuida<br>
+  lo irrepetible.
+  </p>`,
+
+  `<p class="frase activa">
+  Te amo en todas tus formas:<br>
+  las reales,<br>
+  las imperfectas,<br>
+  las de cristal.
+  </p>`
+];
+
+const palabras = ["regalo","elegir","contigo","corazón","cruzar","cuidar","cristal"];
+
+let index = -1;
+let activado = false;
+
+const pantalla = document.getElementById("pantalla");
+const corte = document.getElementById("corte");
+const pregunta = document.getElementById("pregunta");
+
+document.addEventListener("click", (e) => {
+  crearCorazon(e.clientX, e.clientY);
+
+  if (!activado) {
+    activado = true;
+    pantalla.innerHTML = "";
+    return;
+  }
+
+  index++;
+
+  if (index < pantallas.length) {
+    document.body.style.background = "white";
+    pantalla.innerHTML = pantallas[index];
+  }
+  else if (index === pantallas.length) {
+    document.body.style.background = "white";
+    pantalla.innerHTML = "";
+    lluviaPalabras();
+  }
+  else if (index === pantallas.length + 1) {
+    document.body.style.background = "white";
+    corte.classList.remove("oculto");
+  }
+  else {
+    corte.classList.add("oculto");
+    document.body.style.background = rosaFinal;
+    pregunta.classList.remove("oculto");
+  }
+});
+
+function retroceder(e){
+  e.stopPropagation();
+  if(index > -1){
+    index--;
+    pantalla.innerHTML = index >= 0 ? pantallas[index] : "";
+    corte.classList.add("oculto");
+    pregunta.classList.add("oculto");
+    document.body.style.background = index >= pantallas.length + 2 ? rosaFinal : "white";
+  }
+}
+
+function crearCorazon(x, y) {
+  const h = document.createElement("div");
+  h.className = "click-corazon";
+  h.textContent = "♡";
+  h.style.left = (x + Math.random()*20 - 10) + "px";
+  h.style.top = (y + Math.random()*20 - 10) + "px";
+  document.body.appendChild(h);
+  setTimeout(() => h.remove(), 2000);
+}
+
+function lluviaPalabras() {
+  palabras.forEach((p, i) => {
+    const el = document.createElement("div");
+    el.textContent = p;
+    el.className = "palabra";
+    el.style.left = (10 + i * 12) + "vw";
+    el.style.bottom = "35vh";
+    el.style.animationDelay = (Math.random()*0.5) + "s";
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  });
+}
+
+function respuesta(event, tipo) {
+  event.stopPropagation();
+  if (tipo === "hablemos") mostrarMensaje("conoces mi número, corazón <3");
+  if (tipo === "si") {
+    lluviaFinal("♡");
+    mostrarMensaje("te amo");
+  }
+  if (tipo === "sisisi") {
+    lluviaFinal("*");
+    mostrarMensaje("me haces la persona más feliz del mundo");
+  }
+}
+
+function lluviaFinal(simbolo) {
+  for (let i=0;i<25;i++){
+    const el=document.createElement("div");
+    el.textContent=simbolo;
+    el.className="palabra";
+    el.style.left=(Math.random()*90+5)+"vw";
+    el.style.bottom="30vh";
+    el.style.animationDelay=(Math.random()*0.6)+"s";
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),3500);
+  }
+}
+
+function mostrarMensaje(texto){
+  const msg=document.createElement("div");
+  msg.className="mensaje";
+  msg.textContent=texto;
+  document.body.appendChild(msg);
+  setTimeout(()=>msg.remove(),3000);
+}
+</script>
+
+</body>
+</html>
